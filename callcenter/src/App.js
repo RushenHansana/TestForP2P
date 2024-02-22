@@ -11,7 +11,7 @@ import Peer from "simple-peer";
 import io from "socket.io-client";
 import companylogo from "./photos/companylogo.png";
 
-const socket = io.connect("ec2-52-66-239-80.ap-south-1.compute.amazonaws.com");
+const socket = io.connect("http://localhost:5000");
 
 function App() {
   const [me, setMe] = useState("");

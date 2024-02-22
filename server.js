@@ -16,6 +16,7 @@ const rooms = new Map();
 
 io.on("connection", (socket) => {
   socket.emit("me", socket.id);
+  console.log("User connected:", socket.id);
 
   socket.on("disconnect", () => {
     socket.broadcast.emit("callEnded");
@@ -27,11 +28,13 @@ io.on("connection", (socket) => {
       from: data.from,
       name: data.name,
     });
+    console.log("Calling user:", data.userToCall, "from:", data.from);
   });
 
   socket.on("answerCall", (data) => {
     io.to(data.to).emit("callAccepted", data.signal);
-    console.log("Call accepted");
+    console.log("Call accepted", data.to, data.signal);
+    //removeRoom(socket, data.roomId);
   });
 
   socket.on("sendIceCandidate", (data) => {
@@ -52,12 +55,14 @@ io.on("connection", (socket) => {
     if (rooms.has(roomId)) {
       socket.join(roomId);
       rooms.get(roomId).add(socket.id);
-      io.to(roomId).emit("userJoined", Array.from(rooms.get(roomId)));
+      const usersInRoom = Array.from(rooms.get(roomId));
+      io.to(roomId).emit("userJoined", { newUserId: socket.id, existingUsers: usersInRoom });
       console.log("User joined room:", roomId);
     } else {
       socket.emit("invalidRoom");
     }
   });
+  
 
   socket.on("leaveRoom", (roomId) => {
     if (rooms.has(roomId)) {

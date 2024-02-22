@@ -76,6 +76,10 @@ import React, { useEffect, useRef, useState } from "react";
 import Peer from "simple-peer";
 import io, { connect } from "socket.io-client";
 import { Button, IconButton, TextField } from "@material-ui/core";
+import AssignmentIcon from "@material-ui/icons/Assignment";
+import PhoneIcon from "@material-ui/icons/Phone";
+import "./App.css";
+import companylogo from "./photos/companylogo.png";
 
 const socket = io.connect("http://localhost:5000"); // Connect to signaling server
 
@@ -88,15 +92,16 @@ function App() {
   const [newUserId, setNewUserId] = useState(null);
   const [receivingCall, setReceivingCall] = useState(false);
   const [caller, setCaller] = useState("");
-  const [callerSignal, setCallerSignal] = useState("");
+  const [callerSignal, setCallerSignal] = useState();
   const [callAccepted, setCallAccepted] = useState(false);
-
+  const [callEnded, setCallEnded] = useState(false);
   const userVideo = useRef();
   const connectionRef = useRef();
   const meRef = useRef("");
   const flagRef = useRef("");
   const callerSignalRef = useRef(null);
   const callerRef = useRef(null);
+  const peerRef = useRef();
 
   useEffect(() => {
     flagRef.current = true;
@@ -110,8 +115,12 @@ function App() {
     // Get user media
     navigator.mediaDevices
       .getUserMedia({
-        video: true,
-        audio: true,
+        video: {
+          frameRate: 24,
+          width: { min: 480, ideal: 720, max: 1280 },
+          aspectRatio: 1.33333
+        },
+        audio: true
       })
       .then((stream) => {
         setStream(stream);
@@ -142,13 +151,8 @@ function App() {
       setReceivingCall(true);
       setCaller(data.from);
       setCallerSignal(data.signal);
-      callerSignalRef.current = data.signal; // Update ref
-      callerRef.current = data.from; // Update ref
-      console.log("call accepted from:", callerRef.current);
-      answerCall();
       //exit from listning 
-      socket.off("callUser");
-      socket.off("userJoined");
+  
     });
 
     // Handle new user joining the room
@@ -157,23 +161,30 @@ function App() {
       setNewUserId(newUserId);
       
       // Create a new peer connection for each user who joins the room
-      if (newUserId !== meRef.current && flagRef.current == true) {
-        callUser(newUserId);
+      if (newUserId !== meRef.current && flagRef.current === true) {
+        //callUser(newUserId);
         console.log("Calling new user:", newUserId, "from:", me);
-        socket.off("userJoined");
-        socket.off("callUser");
         flagRef.current = false;
       }
 
     });
-    return () => {
-      // Clean up event listeners
-      socket.off("userJoined");
-      socket.off("callUser");
-      socket.off("callAccepted");
-      socket.off("receiveIceCandidate");
-    };
+    socket.on("callAccepted", (signal) => {
+      setCallAccepted(true);
+      peerRef.current.signal(signal);
+      connectionRef.current = peerRef.current;
+      console.log("Call accepted from useeffet:", newUserId);
+    });
   }, []); // Empty dependency array ensures useEffect runs only once
+
+  const Join = () => {
+    if (newUserId !== meRef.current ) {
+      
+      callUser(newUserId);
+  
+      console.log("Calling new user:", newUserId, "from:", me);
+  
+    }
+  };
 
   const callUser = (id) => {
     const peer = new Peer({
@@ -216,13 +227,14 @@ function App() {
       peer.signal(signal)
       console.log("Call accepted from:", id);
     });
+    peerRef.current = peer;
 
     connectionRef.current = peer;
 };
 
 const answerCall = () => {
-  console.log("Answering call from:", callerRef.current);
-  console.log("callerSignal", callerSignalRef.current);
+  console.log("Answering call from:", caller);
+  console.log("callerSignal", callerSignal);
 
   setCallAccepted(true)
   const peer = new Peer({
@@ -249,22 +261,35 @@ const answerCall = () => {
 
   peer.on("signal", (data) => {
     console.log("data", data);
-    socket.emit("answerCall", { signal: data, to: callerRef.current })
+    socket.emit("answerCall", { signal: data, to: caller})
+
    
   });
 
   peer.on("stream", (stream) => {
     userVideo.current.srcObject = stream
   });
+  console.log("callerSignal", caller);
 
   peer.signal(callerSignal)
   connectionRef.current = peer
 };
 
+const leaveCall = () => {
+  setCallEnded(true);
+  connectionRef.current.destroy();
+};
+const [message, setMessage] = useState('');
+const printtag =()=>{
+  setMessage("Click the Phone Icon");
+
+};
+
+
   return (
     <>
       <div className="Nav">
-        
+        <img src={companylogo} alt=""/>
         <h1 className="headd">Instant Meeting</h1>
       </div>
 
@@ -274,14 +299,46 @@ const answerCall = () => {
             {stream && <video playsInline muted ref={myVideo} autoPlay style={{ width: "300px" }} />}
           </div>
           <div className="video">
-            {callAccepted  ?
-            <video playsInline ref={userVideo} autoPlay style={{ width: "600px"}} /> :
-            null}
+            
+            <video playsInline ref={userVideo} autoPlay style={{ width: "600px"}} /> 
           </div>
         </div>
+        <div className="myId">
+          <div className="call-button">
+            {callAccepted && !callEnded ? (
+              <Button variant="contained" color="secondary" onClick={leaveCall}>
+                End Call
+              </Button>
+            ) : (
+              <IconButton color="primary" aria-label="call" onClick={() => callUser(newUserId)}>
+                <PhoneIcon fontSize="large" />
+              </IconButton>
+            )}
+           
+           
+          </div>
+        </div>
+        <div className="call-accept">
+          {receivingCall && !callAccepted ? (
+            <div className="caller">
+              <h1 > is calling...</h1>
+              <Button variant="contained" color="primary" onClick={answerCall}>
+                Answer
+              </Button>
+            </div>
+          ) : null}
+        </div>
         
+        <div className="btns">
+          
+        
+          <div className="capture-button1">
+            <Button variant="contained" color="primary" onClick={()=> {Join();printtag()}}>
+              Join Meeting 
+            </Button>
+          </div>
 
-        
+        </div>
       </div>
     </>
   );

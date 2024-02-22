@@ -1,3 +1,4 @@
+
 .container {
 	display: grid;
 	grid-template-columns: 7fr 3fr;
@@ -8,13 +9,24 @@
 	margin-right: 50px;
 	margin-top: 100px;
 	border-radius: 48px;
-	background: #c9d6ff;
+	background: #c9d6ff; /* fallback for old browsers */
+	background: -webkit-linear-gradient(to right, #e2e2e2, #c9d6ff); /* Chrome 10-25, Safari 5.1-6 */
+	background: linear-gradient(to right, #e2e2e2, #c9d6ff); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
 	padding: 1rem;
 	display: grid;
 	justify-content: center;
 	align-content: center;
 	width: 250px;
 	height: 250px;
+  }
+
+  .call-accept {
+	margin-top:10%;
+
+  }
+  .call-button {
+	text-align: center;
+	margin-top: 2rem;
   }
   
   .video-container {
@@ -26,45 +38,53 @@
 	margin-left: 10rem;
   }
   
-  body {
-	background: #47e6ce;
+  .caller {
+	text-align: center;
+	color: #fff;
   }
   
-  .Nav {
+  body {
+	background: #ccd7d6; /* fallback for old browsers */
+	background: -webkit-linear-gradient(to right, #42815f, #04070d); /* Chrome 10-25, Safari 5.1-6 */
+	background: linear-gradient(to right, #14d4ce, #d0d5d4e8); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  }
+  
+ .capture-button {
+	text-align: center;
+	margin-top: 20rem;
+	grid-column: 1 / span 2; /* span the full width of the container */
+  }
+  .captured-photo {
+	align-items: center;
+  }
+  .captured-photo1 {
+	display: flex;
+	align-items: center;
+  }
+.Nav{
 	display: flex;
 	background: white;
 	width: 100vw;
 	z-index: -1;
 	align-items: center;
-  }
-  
-  .headd {
+}
+.headd{
 	color: blue;
 	font-weight: 700;
 	margin-left: 350px;
 	font-size: xxx-large;
-  }
-  
-  .call-accept {
-	margin-top: 10%;
-  }
-  
-  .call-button {
-	text-align: center;
-	margin-top: 2rem;
-  }
-  
-  .capture-button1 {
+
+}
+.capture-button1{
 	display: flex;
 	position: relative;
 	margin-left: -300px;
-  }
-  
-  .btns {
+
+}
+.btns{
 	display: flex;
 	flex-direction: row;
 	align-items: center;
 	margin-left: 400px;
-	margin-top: -10%;
-  }
-  
+	margin-top:-10%;
+}
